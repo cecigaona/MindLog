@@ -1,0 +1,116 @@
+<Layouts.flash_group flash={@flash} />
+
+<main class="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+  <section class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm sm:p-10">
+    <div class="max-w-3xl">
+      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-primary">MindLog</p>
+      <h1 class="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
+        A journal with transparent language signals.
+      </h1>
+      <p class="mt-5 max-w-2xl text-lg leading-8 text-base-content/75">
+        Write a reflection, save it to PostgreSQL, and review simple counts of selected English words and phrases.
+      </p>
+    </div>
+  </section>
+
+  <section
+    class="mt-6 rounded-box border border-warning/40 bg-warning/10 p-5"
+    aria-labelledby="safety-note"
+  >
+    <h2 id="safety-note" class="font-semibold">This is not a mental-health assessment</h2>
+    <p class="mt-2 leading-7 text-base-content/80">
+      MindLog only matches a small English lexicon. It cannot diagnose emotions, trauma, depression, anxiety, or any other condition.
+      If you may act on thoughts of harming yourself or someone else, contact local emergency services now. In the United States,
+      call or text
+      <a class="link font-medium" href="https://988lifeline.org/" rel="noreferrer" target="_blank">
+        988
+      </a>
+      for 24/7 crisis support.
+    </p>
+  </section>
+
+  <section
+    id="new-entry"
+    class="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]"
+    aria-labelledby="new-reflection-heading"
+  >
+    <div class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
+      <h2 id="new-reflection-heading" class="text-2xl font-semibold">New reflection</h2>
+      <p class="mt-2 text-sm leading-6 text-base-content/70">
+        Your entry is stored in the local PostgreSQL volume. Avoid personally identifying or highly sensitive data in this demo.
+      </p>
+
+      <.form for={@form} id="journal-entry-form" action={~p"/entries"} method="post" class="mt-6">
+        <.input
+          field={@form[:body]}
+          type="textarea"
+          label="What is on your mind?"
+          placeholder="Write freely. This prototype looks only for selected English words and phrases."
+          rows="10"
+          maxlength="10000"
+          required
+        />
+        <button class="btn btn-primary mt-3" type="submit">
+          Save reflection and count language
+        </button>
+      </.form>
+    </div>
+
+    <aside class="rounded-box bg-base-200 p-6" aria-labelledby="counting-heading">
+      <h2 id="counting-heading" class="font-semibold">How it counts</h2>
+      <ol class="mt-4 space-y-3 text-sm leading-6 text-base-content/75">
+        <li><span class="font-semibold text-base-content">1.</span> Split text into words.</li>
+        <li>
+          <span class="font-semibold text-base-content">2.</span>
+          Count fixed emotion and trauma-related terms.
+        </li>
+        <li>
+          <span class="font-semibold text-base-content">3.</span>
+          Show raw mentions and mentions per 100 words.
+        </li>
+        <li>
+          <span class="font-semibold text-base-content">4.</span>
+          Use only a non-clinical language label.
+        </li>
+      </ol>
+    </aside>
+  </section>
+
+  <section class="mt-10" aria-labelledby="recent-reflections-heading">
+    <div class="flex items-end justify-between gap-4">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-primary">History</p>
+        <h2 id="recent-reflections-heading" class="mt-2 text-2xl font-semibold">
+          Recent reflections
+        </h2>
+      </div>
+      <span class="text-sm text-base-content/65">{length(@entries)} saved</span>
+    </div>
+
+    <div
+      :if={@entries == []}
+      class="mt-5 rounded-box border border-dashed border-base-300 p-8 text-center text-base-content/65"
+    >
+      No reflections yet. Your first saved entry will appear here.
+    </div>
+
+    <div :if={@entries != []} class="mt-5 grid gap-4 sm:grid-cols-2">
+      <article
+        :for={entry <- @entries}
+        class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm"
+      >
+        <div class="flex items-start justify-between gap-3">
+          <p class="text-sm text-base-content/60">{formatted_date(entry.inserted_at)}</p>
+          <span class={["badge shrink-0", overall_badge_class(entry)]}>
+            {overall_label(entry)}
+          </span>
+        </div>
+        <p class="mt-4 line-clamp-3 leading-7 text-base-content/80">{entry.body}</p>
+        <div class="mt-5 flex items-center justify-between gap-3">
+          <span class="text-sm text-base-content/60">{entry.word_count} words</span>
+          <a class="link font-semibold" href={~p"/entries/#{entry}"}>Review counts</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>

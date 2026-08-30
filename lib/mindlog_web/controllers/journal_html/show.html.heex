@@ -1,0 +1,104 @@
+<Layouts.flash_group flash={@flash} />
+
+<main class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+  <a class="link text-sm font-semibold" href={~p"/"}>← All reflections</a>
+
+  <header class="mt-5 rounded-box border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8">
+    <p class="text-sm text-base-content/60">Saved {formatted_date(@entry.inserted_at)}</p>
+    <div class="mt-3 flex flex-wrap items-center gap-3">
+      <h1 class="text-3xl font-semibold tracking-tight">Reflection analysis</h1>
+      <span class={["badge", overall_badge_class(@entry)]}>{overall_label(@entry)}</span>
+    </div>
+    <p class="mt-4 max-w-2xl leading-7 text-base-content/75">
+      This result is a transparent keyword count, not a diagnosis or a conclusion about your mental health.
+    </p>
+  </header>
+
+  <section
+    :if={crisis_language?(@entry)}
+    class="mt-6 rounded-box border border-error/40 bg-error/10 p-6"
+    aria-labelledby="urgent-support-heading"
+  >
+    <h2 id="urgent-support-heading" class="text-xl font-semibold">
+      Consider immediate human support
+    </h2>
+    <p class="mt-2 leading-7 text-base-content/80">
+      This entry contains {crisis_mentions(@entry)} phrase match(es) associated with urgent distress. Automatic matching can be wrong,
+      but if you may be in immediate danger, contact local emergency services. In the United States, call or text
+      <a
+        class="link font-semibold"
+        href="https://988lifeline.org/"
+        rel="noreferrer"
+        target="_blank"
+      >
+        988
+      </a>
+      to reach the Suicide &amp; Crisis Lifeline.
+    </p>
+  </section>
+
+  <section class="mt-6 grid gap-4 sm:grid-cols-3" aria-label="Summary counts">
+    <div class="rounded-box bg-base-200 p-5">
+      <p class="text-sm text-base-content/65">Words</p>
+      <p class="mt-1 text-3xl font-semibold">{@entry.word_count}</p>
+    </div>
+    <div class="rounded-box bg-base-200 p-5">
+      <p class="text-sm text-base-content/65">Trauma-related terms</p>
+      <p class="mt-1 text-3xl font-semibold">{trauma_mentions(@entry)}</p>
+    </div>
+    <div class="rounded-box bg-base-200 p-5">
+      <p class="text-sm text-base-content/65">Urgent-support phrases</p>
+      <p class="mt-1 text-3xl font-semibold">{crisis_mentions(@entry)}</p>
+    </div>
+  </section>
+
+  <section
+    class="mt-8 rounded-box border border-base-300 bg-base-100 p-6 shadow-sm"
+    aria-labelledby="emotion-counts-heading"
+  >
+    <h2 id="emotion-counts-heading" class="text-2xl font-semibold">Emotion word counts</h2>
+    <p class="mt-2 text-sm leading-6 text-base-content/70">
+      A mention is a matched word. The rate normalizes that count to every 100 words in this entry.
+    </p>
+
+    <dl class="mt-6 divide-y divide-base-300">
+      <div
+        :for={{emotion, score} <- emotion_rows(@entry)}
+        class="flex items-center justify-between gap-4 py-4"
+      >
+        <dt class="font-medium">{emotion_label(emotion)}</dt>
+        <dd class="text-right text-sm text-base-content/75">
+          <span class="font-semibold text-base-content">{score["mentions"]}</span>
+          mentions <span class="mx-1 text-base-content/35">·</span>
+          {score["per_100_words"]} per 100 words
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  <section
+    class="mt-6 rounded-box border border-base-300 bg-base-100 p-6 shadow-sm"
+    aria-labelledby="trauma-language-heading"
+  >
+    <h2 id="trauma-language-heading" class="text-2xl font-semibold">Trauma-related language</h2>
+    <p class="mt-2 leading-7 text-base-content/75">
+      {trauma_mentions(@entry)} selected term match(es). This is only a lexical count; it does not identify trauma or post-traumatic stress.
+    </p>
+  </section>
+
+  <section
+    class="mt-6 rounded-box border border-base-300 bg-base-100 p-6 shadow-sm"
+    aria-labelledby="reflection-text-heading"
+  >
+    <h2 id="reflection-text-heading" class="text-2xl font-semibold">Your reflection</h2>
+    <div class="mt-4 space-y-4 whitespace-pre-wrap leading-7 text-base-content/85">
+      <p :for={paragraph <- body_paragraphs(@entry.body)}>{paragraph}</p>
+    </div>
+  </section>
+
+  <form class="mt-8" action={~p"/entries/#{@entry}"} method="post">
+    <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+    <input type="hidden" name="_method" value="delete" />
+    <button class="btn btn-error btn-outline" type="submit">Delete this reflection</button>
+  </form>
+</main>
